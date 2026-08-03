@@ -568,6 +568,7 @@ pub type TxExtension = cumulus_pallet_weight_reclaim::StorageWeightReclaim<
 	(
 		// Uncomment this to enable running signed transactions using v5 extrinsics.
 		// pallet_verify_signature::VerifySignature<Runtime>,
+		frame_system::AuthorizeCall<Runtime>,
 		frame_system::CheckNonZeroSender<Runtime>,
 		frame_system::CheckSpecVersion<Runtime>,
 		frame_system::CheckTxVersion<Runtime>,

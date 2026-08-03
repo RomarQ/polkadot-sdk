@@ -69,7 +69,7 @@ impl TryFrom<&Extrinsic> for TransferData {
 		match uxt {
 			Extrinsic {
 				function: RuntimeCall::Balances(BalancesCall::transfer_allow_death { dest, value }),
-				preamble: Preamble::Signed(from, _, ((CheckNonce(nonce), ..), ..)),
+				preamble: Preamble::Signed(from, _, (_, (CheckNonce(nonce), ..), ..)),
 				..
 			} => Ok(TransferData { from: *from, to: *dest, amount: *value, nonce: *nonce }),
 			Extrinsic {
@@ -209,6 +209,7 @@ impl ExtrinsicBuilder {
 	pub fn build(self) -> Extrinsic {
 		if let Some(signer) = self.signer {
 			let tx_ext = (
+				frame_system::AuthorizeCall::new(),
 				(CheckNonce::from(self.nonce.unwrap_or(0)), CheckWeight::new()),
 				CheckSubstrateCall {},
 				self.metadata_hash
