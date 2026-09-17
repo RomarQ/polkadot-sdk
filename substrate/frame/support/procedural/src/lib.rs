@@ -1338,6 +1338,10 @@ pub fn dynamic_aggregated_params_internal(attrs: TokenStream, input: TokenStream
 /// `frame_system::CreateAuthorizedTransaction`. This trait allows to specify which transaction
 /// extension to use when creating a transaction for an authorized call.
 ///
+/// A client submits an authorized call as a general transaction. The reference doc on [extrinsic
+/// encoding](https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/extrinsic_encoding/index.html)
+/// describes how to build one.
+///
 /// # Usage in the pallet
 ///
 /// ## Example/Overview:

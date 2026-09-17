@@ -220,6 +220,52 @@
 //! origin type. For an example, look into the [authorization example pallet
 //! extensions](pallet_example_authorization_tx_extension::extensions)
 //!
+//! ## Building a general transaction
+//!
+//! A general transaction carries no signature, so a client builds it from the call and the
+//! extension values alone, in the layout described [above](#transaction_extensions_extra): the
+//! extension version byte, then one explicit value per extension, in the order the metadata lists
+//! them. Each chain picks its own pipeline, and a chain can define
+//! [extensions][crate::reference_docs::transaction_extensions] of its own, so the values a client
+//! has to supply depend on the chain.
+//!
+//! Many extensions carry no explicit value and encode to zero bytes. An extension that carries one
+//! usually has a neutral value that asks for none of the optional behaviour, such as an immortal
+//! era for [`CheckMortality`](frame_system::CheckMortality), or a zero tip for
+//! [`ChargeTransactionPayment`](pallet_transaction_payment::ChargeTransactionPayment). An extension
+//! that wraps another, such as
+//! [`SkipCheckIfFeeless`](pallet_skip_feeless_payment::SkipCheckIfFeeless), takes the value of the
+//! extension it wraps. A chain-specific extension may have no neutral value at all, and then the
+//! client needs to know the chain.
+//!
+//! The tests of the [authorization example pallet](pallet_example_authorization_tx_extension) build
+//! such a transaction against a pipeline that authorizes it.
+//!
+//! ## Choosing between a general and a bare transaction
+//!
+//! A call that needs no signature can be valid as a general transaction, as a bare transaction, or
+//! as neither. The transaction extension pipeline decides this, not the call, so only the runtime
+//! knows the answer. A client gets it from the `TaggedTransactionQueue_validate_transaction`
+//! runtime API:
+//!
+//! - [`InvalidTransaction::UnknownOrigin`](sp_runtime::transaction_validity::InvalidTransaction::UnknownOrigin)
+//!   means that no extension authorized the general transaction. Send the call as a bare
+//!   transaction instead.
+//! - [`UnknownTransaction::NoUnsignedValidator`](sp_runtime::transaction_validity::UnknownTransaction::NoUnsignedValidator)
+//!   means that the pallet has no `ValidateUnsigned` implementation. Send the call as a general
+//!   transaction instead.
+//! - Any other error is a rejection of the transaction itself. Report it to the user.
+//!
+//! The bare form is on its way out for transactions.
+//! [`ValidateUnsigned`](sp_runtime::traits::ValidateUnsigned) is deprecated and goes away after
+//! April 2027. After that a bare extrinsic only carries an inherent, and a call that a pallet
+//! authorizes with [`authorize`](frame_support::pallet_macros::authorize) is valid only as a
+//! general transaction. Until then a pallet may accept either form.
+//!
+//! So a client that builds the general transaction first, and falls back to a bare one only on
+//! `UnknownOrigin`, works on a runtime that has migrated and on one that has not, and keeps
+//! working once the bare form is gone.
+//!
 //! # Example Encoding
 //!
 //! Using [`sp_runtime::generic::UncheckedExtrinsic`], we can construct and encode an extrinsic as
